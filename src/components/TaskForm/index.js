@@ -3,9 +3,9 @@ import { useState } from "react";
 import Button from "../Button";
 import { Form, Input } from "./styles";
 
-export default function TaskForm({ onSave }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+export default function TaskForm({ buttonLabel, onSave, task }) {
+  const [title, setTitle] = useState(task?.title ?? '');
+  const [description, setDescription] = useState(task?.description ?? '');
 
   return (
     <Form>
@@ -24,9 +24,9 @@ export default function TaskForm({ onSave }) {
       />
 
       <Button
-        onPress={onSave}
+        onPress={() => onSave({ title, description })}
         disabled={title.length === 0 || description.length === 0}>
-        Cadastrar
+        {buttonLabel}
       </Button>
     </Form>
   );
