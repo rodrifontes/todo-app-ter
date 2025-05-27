@@ -1,5 +1,8 @@
 import { useFonts } from 'expo-font';
 
+import { SQLiteProvider } from 'expo-sqlite';
+import { initializeDatabase } from './src/database/initializeDatabase';
+
 import Main from './src/Main';
 
 export default function App() {
@@ -14,6 +17,8 @@ export default function App() {
   }
 
   return (
-    <Main />
+    <SQLiteProvider databaseName="tasks.db" onInit={initializeDatabase}>
+      <Main />
+    </SQLiteProvider>
   );
 }

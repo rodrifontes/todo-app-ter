@@ -25,7 +25,7 @@ export default function Tasks({ tasks, onDelete, onEditTask, onChangeStatus }) {
           </TaskDescription>
 
           <TaskFooter>
-            <TaskStatus onPress={() => onChangeStatus(task)}>
+            <TaskStatus onPress={() => onChangeStatus(task.id)}>
               <TaskIcon source={task.done ? done : pending} />
               <Text color={task.done ? '#2192d8' : '#e620ae'}>
                 {task.done ? 'Feita' : 'Pendente'}
@@ -36,7 +36,7 @@ export default function Tasks({ tasks, onDelete, onEditTask, onChangeStatus }) {
               <TouchableOpacity onPress={() => onEditTask(task)}>
                 <TaskIcon source={edit} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => onDelete(task)}>
+              <TouchableOpacity onPress={() => onDelete(task.id)}>
                 <TaskIcon source={excluir} />
               </TouchableOpacity>
             </TaskAction>

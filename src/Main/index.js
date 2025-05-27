@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { Text } from '../components/Text';
 
@@ -13,26 +13,49 @@ import EditTaskModal from '../components/EditTaskModal';
 
 import task from '../assets/images/task.png';
 
-import { tasks as mock } from '../mocks/tasks';
 import { ActivityIndicator } from 'react-native';
+
+import { useTasksDatabase } from '../database/useTasksDatabase';
 
 export default function Main() {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isNewTaskModalVisible, setIsNewTaskModalVisible] = useState(false);
   const [isEditTaskModalVisible, setIsEditTaskModalVisible] = useState(false);
   const [taskBeingEdit, setTaskBeingEdit] = useState(null);
-  const [tasks, setTasks] = useState(mock);
+  const [taskIdBeingDelete, setTaskIdBeingDelete] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  function handleChangeStatus() {
-    alert('Chamar alteração do status');
+  const tasksDatabase = useTasksDatabase();
+
+  async function getTasks() {
+    try {
+      setIsLoading(true);
+      setTasks(await tasksDatabase.show());
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  function handleDelete() {
+  useEffect(() => {
+    getTasks();
+  }, []);
+
+  function handleChangeStatus(id) {
+    tasksDatabase.updateStatus(id);
+    getTasks();
+  }
+
+  function handleDelete(id) {
+    setTaskIdBeingDelete(id);
     setIsDeleteModalVisible(true);
   }
 
   function handleConfirmDeleteTask() {
+    tasksDatabase.remove(taskIdBeingDelete);
+    getTasks();
     setIsDeleteModalVisible(false);
   }
 
@@ -42,11 +65,14 @@ export default function Main() {
   }
 
   function handleCreateTask(task) {
-    //Add a persistência da tarefa
+    tasksDatabase.create(task);
+    getTasks();
     setIsNewTaskModalVisible(false);
   }
 
-  function handleSaveEdit() {
+  function handleSaveEdit(task) {
+    tasksDatabase.update({ ...task, id: taskBeingEdit.id });
+    getTasks();
     setIsEditTaskModalVisible(false);
   }
 
