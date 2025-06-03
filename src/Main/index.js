@@ -17,6 +17,8 @@ import { ActivityIndicator } from 'react-native';
 
 import { useTasksDatabase } from '../database/useTasksDatabase';
 
+import { api } from '../utils/api';
+
 export default function Main() {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isNewTaskModalVisible, setIsNewTaskModalVisible] = useState(false);
@@ -24,7 +26,7 @@ export default function Main() {
   const [taskBeingEdit, setTaskBeingEdit] = useState(null);
   const [taskIdBeingDelete, setTaskIdBeingDelete] = useState(null);
   const [tasks, setTasks] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const tasksDatabase = useTasksDatabase();
 
@@ -40,12 +42,28 @@ export default function Main() {
   }
 
   useEffect(() => {
-    getTasks();
+    //getTasks();
+    api.get('/tasks').then((response) => {
+      setTasks(response.data);
+      setIsLoading(false);
+    }).catch((error) => {
+      console.log(error);
+    });
   }, []);
 
-  function handleChangeStatus(id) {
-    tasksDatabase.updateStatus(id);
-    getTasks();
+  async function handleChangeStatus(id) {
+    // tasksDatabase.updateStatus(id);
+    // getTasks();
+    const taskChange = (await api.put(`/tasks/status/${id}`, task)).data;
+
+    setTasks((prevState) => {
+      const itemIndex = prevState.findIndex(taskItem => taskItem.id === id);
+      const newTasks = [...prevState];
+      newTasks[itemIndex] = taskChange;
+
+      return newTasks;
+    });
+
   }
 
   function handleDelete(id) {
@@ -54,8 +72,14 @@ export default function Main() {
   }
 
   function handleConfirmDeleteTask() {
-    tasksDatabase.remove(taskIdBeingDelete);
-    getTasks();
+    // tasksDatabase.remove(taskIdBeingDelete);
+    // getTasks();
+    api.delete(`/tasks/${taskIdBeingDelete}`).then(() => {
+      setTasks(tasks.filter(task => task.id !== taskIdBeingDelete));
+    }).catch((error) => {
+      console.log(error);
+    });
+
     setIsDeleteModalVisible(false);
   }
 
@@ -64,15 +88,30 @@ export default function Main() {
     setIsEditTaskModalVisible(true);
   }
 
-  function handleCreateTask(task) {
-    tasksDatabase.create(task);
-    getTasks();
+  async function handleCreateTask(task) {
+    //tasksDatabase.create(task);
+    //getTasks();
+    const taskAdd = (await api.post('/tasks', task)).data;
+
+    tasks.unshift(taskAdd);
+    setTasks(tasks);
+
     setIsNewTaskModalVisible(false);
   }
 
-  function handleSaveEdit(task) {
-    tasksDatabase.update({ ...task, id: taskBeingEdit.id });
-    getTasks();
+  async function handleSaveEdit(task) {
+    // tasksDatabase.update({ ...task, id: taskBeingEdit.id });
+    // getTasks();
+    const taskChange = (await api.put(`/tasks/${taskBeingEdit.id}`, task)).data;
+
+    setTasks((prevState) => {
+      const itemIndex = prevState.findIndex(taskItem => taskItem.id === taskBeingEdit.id);
+      const newTasks = [...prevState];
+      newTasks[itemIndex] = taskChange;
+
+      return newTasks;
+    });
+
     setIsEditTaskModalVisible(false);
   }
 
